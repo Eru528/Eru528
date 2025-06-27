@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>隨機生成你的幸運角色 ‑ 震撼版</title>
+  <style>
+    /* ---------- 基本版面 ---------- */
+    html,body{
+      height:100%;
+      margin:0;
+    }
+    body{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      background:#0f2027;                 /* 深色漸層背景 */
+      background:linear-gradient(135deg,#0f2027 0%,#203a43 50%,#2c5364 100%);
+      font-family:"Microsoft JhengHei",sans-serif;
+      overflow:hidden;                    /* 避免 confetti 捲軸 */
+      color:#ecf0f1;
+    }
+    h1{
+      font-size:40px;
+      margin:0 0 30px;
+      text-shadow:0 2px 4px rgba(0,0,0,.6);
+    }
+    #display{
+      font-size:60px;
+      font-weight:900;
+      padding:30px 50px;
+      border-radius:20px;
+      background:rgba(255,255,255,.15);
+      backdrop-filter:blur(6px);
+      box-shadow:0 8px 16px rgba(0,0,0,.3);
+      min-width:350px;
+      text-align:center;
+      transition:transform .2s;
+    }
+    /* 跳動動畫 */
+    #display.bounce{
+      animation:bounce .2s;
+    }
+    @keyframes bounce{
+      0%{transform:scale(1)}
+      50%{transform:scale(1.25)}
+      100%{transform:scale(1)}
+    }
+
+    /* 得獎時發光 */
+    #display.winner{
+      animation:glow 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes glow{
+      from{box-shadow:0 0 20px 5px rgba(255,255,255,.8)}
+      to{box-shadow:0 0 40px 20px rgba(255,255,255,1)}
+    }
+
+    /* 開始按鈕 */
+    button{
+      margin-top:40px;
+      font-size:28px;
+      padding:15px 40px;
+      border:none;
+      border-radius:14px;
+      cursor:pointer;
+      color:#fff;
+      background:#e84118;
+      box-shadow:0 6px 12px rgba(0,0,0,.4);
+      transition:background .3s, transform .2s;
+    }
+    button:hover{background:#c23616;}
+    button:active{transform:scale(.94);}
+
+    /* ---------------- 震動動畫 ---------------- */
+    @keyframes shake{
+      0%{transform:translate(1px,1px) rotate(0deg);}
+      10%{transform:translate(-1px,-2px) rotate(-1deg);}
+      20%{transform:translate(-3px,0px) rotate(1deg);}
+      30%{transform:translate(3px,2px) rotate(0deg);}
+      40%{transform:translate(1px,-1px) rotate(1deg);}
+      50%{transform:translate(-1px,2px) rotate(-1deg);}
+      60%{transform:translate(-3px,1px) rotate(0deg);}
+      70%{transform:translate(3px,1px) rotate(-1deg);}
+      80%{transform:translate(-1px,-1px) rotate(1deg);}
+      90%{transform:translate(1px,2px) rotate(0deg);}
+      100%{transform:translate(1px,-2px) rotate(-1deg);}
+    }
+    .shake{
+      animation:shake 0.6s;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>隨機生成你的幸運角色</h1>
+  <div id="display">請點擊「開始」</div>
+  <button onclick="startRandom()">開始</button>
+
+  <!-- confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const options = ['王族', '騎士', '黑暗妖精', '法師', '妖精', '龍騎士', '幻術士'];
+    let intervalId = null;
+
+    function fireConfetti() {
+      // 連續三波繽紛紙片
+      const duration = 2 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
+    }
+
+    function startRandom() {
+      const display = document.getElementById('display');
+
+      // 如果正在跑，停止並重置
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+        intervalId = null;
+        display.classList.remove('winner');
+        return;
+      }
+
+      let count = 0;
+      display.classList.remove('winner');
+
+      intervalId = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * options.length);
+        display.textContent = options[randomIndex];
+
+        // 文字彈跳
+        display.classList.remove('bounce');
+        void display.offsetWidth; // 觸發重排
+        display.classList.add('bounce');
+
+        count++;
+
+        if (count >= 25) {
+          clearInterval(intervalId);
+          intervalId = null;
+
+          // 最終效果：紙片 + 震動 + 發光
+          display.classList.add('winner');
+          document.body.classList.add('shake');
+          setTimeout(() => document.body.classList.remove('shake'), 600);
+          fireConfetti();
+        }
+      }, 90);
+    }
+  </script>
+</body>
+</html>
